@@ -4,7 +4,6 @@ import tensorflow as tf
 
 from sklearn.metrics import f1_score
 
-
 slim = tf.contrib.slim
 
 
@@ -23,7 +22,7 @@ class Model(object):
         self.session = session
 
         self._init_placeholder()
-        self.model_4()
+        self.model_5()
 
         self.optimizer()
         self.get_accuracy()
@@ -64,6 +63,7 @@ class Model(object):
                 x = slim.conv2d(x, 64, [1, 1], stride=1, scope='Model_7')
                 x = slim.avg_pool2d(x, [4, 2])
                 x = slim.flatten(x)
+
                 self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
 
     def model_2(self, reuse=False):
@@ -87,7 +87,6 @@ class Model(object):
                 branch_1 = slim.avg_pool2d(branch_1, [7, 2], scope='Branch1_avgpool_1')
 
                 x = slim.flatten(tf.concat(values=[branch_0, branch_1], axis=3))
-
                 self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
 
     def model_3(self, reuse=False):
@@ -115,7 +114,6 @@ class Model(object):
                 branch_3 = slim.avg_pool2d(branch_3, [7, 2], scope='Branch3_avgpool_1')
 
                 x = slim.flatten(tf.concat(values=[branch_2, branch_3], axis=3))
-
                 self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
 
     def model_4(self, reuse=False):
@@ -148,7 +146,54 @@ class Model(object):
                 branch_1_1 = slim.avg_pool2d(branch_1_1, [7, 2], scope='Branch_1_1_avgpool_1')
 
                 x = slim.flatten(tf.concat(values=[branch_1_0, branch_1_1], axis=3))
+                self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
 
+    def model_5(self, reuse=False):
+        with tf.variable_scope('encoder', reuse=reuse) as encoder_scope:
+            with slim.arg_scope([slim.conv2d], stride=(2, 1), padding='SAME', activation_fn=tf.nn.elu):
+                data = slim.batch_norm(tf.reshape(slim.batch_norm(self.input), shape=[-1, 100, 3, 1]))
+                branch_0_0 = slim.conv2d(data, 8, [5, 3], scope='Branch_0_0_conv_1')
+                branch_0_0 = slim.conv2d(branch_0_0, 16, [5, 3], scope='Branch_0_0_conv_2')
+                branch_0_0 = slim.conv2d(branch_0_0, 16, [1, 1], stride=1, scope='Branch_0_0_conv_3')
+                branch_0_0 = slim.conv2d(branch_0_0, 32, [5, 3], scope='Branch_0_0_conv_4')
+
+                branch_0_1 = slim.conv2d(data, 8, [3, 3], scope='Branch_0_1_conv_1')
+                branch_0_1 = slim.conv2d(branch_0_1, 16, [3, 3], scope='Branch_0_1_conv_2')
+                branch_0_1 = slim.conv2d(branch_0_1, 16, [1, 1], stride=1, scope='Branch_0_1_conv_3')
+                branch_0_1 = slim.conv2d(branch_0_1, 32, [3, 3], scope='Branch_0_1_conv_4')
+
+                branch_0_2 = slim.conv2d(data, 8, [5, 3], scope='Branch_0_2_conv_1')
+                branch_0_2 = slim.conv2d(branch_0_2, 16, [4, 3], scope='Branch_0_2_conv_2')
+                branch_0_2 = slim.conv2d(branch_0_2, 16, [1, 1], stride=1, scope='Branch_0_2_conv_3')
+                branch_0_2 = slim.conv2d(branch_0_2, 32, [3, 3], scope='Branch_0_2_conv_4')
+
+                _x = tf.concat(values=[branch_0_0, branch_0_1, branch_0_2], axis=3)
+
+                branch_1_0 = slim.conv2d(_x, 48, [5, 3], stride=1, scope='Branch_1_0_conv_1')
+                branch_1_0 = slim.conv2d(branch_1_0, 64, [1, 1], stride=1, scope='Branch_1_0_conv_2')
+                branch_1_0 = slim.conv2d(branch_1_0, 64, [3, 3], stride=1, scope='Branch_1_0_conv_3')
+
+                branch_1_1 = slim.conv2d(_x, 48, [3, 3], stride=1, scope='Branch_1_1_conv_1')
+                branch_1_1 = slim.conv2d(branch_1_1, 64, [1, 1], stride=1, scope='Branch_1_1_conv_2')
+                branch_1_1 = slim.conv2d(branch_1_1, 64, [3, 3], stride=1, scope='Branch_1_1_conv_3')
+
+                mixed = tf.concat(values=[branch_1_0, branch_1_1], axis=3)
+                up = slim.conv2d(mixed, _x.get_shape()[3], [1, 1], stride=1, padding='SAME', normalizer_fn=None,
+                                 activation_fn=None, scope='Conv2d_up')
+
+                scaled_up = up * 0.9
+                _x += scaled_up
+                _x = tf.nn.relu(_x)
+
+                branch_2_0 = slim.conv2d(_x, 80, [5, 3], stride=2, scope='Branch_2_0_conv_1')
+                branch_2_0 = slim.conv2d(branch_2_0, 80, [1, 1], stride=1, scope='Branch_2_0_conv_2')
+                branch_2_0 = slim.avg_pool2d(branch_2_0, [7, 2], scope='Branch_2_0_avgpool_1')
+
+                branch_2_1 = slim.conv2d(_x, 80, [3, 3], stride=2, scope='Branch_2_1_conv_1')
+                branch_2_1 = slim.conv2d(branch_2_1, 80, [1, 1], stride=1, scope='Branch_2_1_conv_2')
+                branch_2_1 = slim.avg_pool2d(branch_2_1, [7, 2], scope='Branch_2_1_avgpool_1')
+
+                x = slim.flatten(tf.concat(values=[branch_2_0, branch_2_1], axis=3))
                 self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
 
     def optimizer(self):
@@ -221,10 +266,4 @@ class Model(object):
                 print('{}epoch average loss:'.format(ep), loss_sum)
                 print('{}epoch validation accuracy:'.format(ep), acc)
 
-            # data = pickle.load(open(os.path.join(self.data_path, 'test_set.pkl'), 'rb'))
-            # test_input, test_target = zip(*data)
-            # print(self.session.run(self.accuracy, feed_dict={self.input: test_input, self.target: test_target,
-            #                                                  self.keep_prob: 1.0}), acc, loss_sum)
-
-        print(self.best_accuracy, self.best_loss)
-
+        # print(self.best_accuracy, self.best_loss)

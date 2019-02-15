@@ -17,11 +17,11 @@ def analyzer(data_list):
 
 
 if __name__ == '__main__':
-    preprocess = PreProcessing(fp, pp)
-    preprocess.preprocess()
+    # preprocess = PreProcessing(fp, pp)
+    # preprocess.preprocess()
 
     acc_model_list, loss_model_list = [], []
-    for _ in range(5):
+    for _ in range(2):
         sess = tf.Session()
         model = Model(sess, fp, lp)
         model.train()
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     analyzed_data = analyzer(acc_model_list)
     print('accuracy model - min: {},  max: {},  median: {},  average: {}'.format(analyzed_data[0], analyzed_data[1],
-                                                                              analyzed_data[2], analyzed_data[3]))
+                                                                                 analyzed_data[2], analyzed_data[3]))
     analyzed_data = analyzer(loss_model_list)
     print('loss model - min: {},  max: {},  median: {},  average: {}'.format(analyzed_data[0], analyzed_data[1],
-                                                                          analyzed_data[2], analyzed_data[3]))
+                                                                             analyzed_data[2], analyzed_data[3]))
