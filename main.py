@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # preprocess.preprocess()
 
     acc_model_list, loss_model_list = [], []
-    for _ in range(1):
+    for _ in range(12):
         sess = tf.Session()
         model = Model(sess, fp, lp)
         model.train()
