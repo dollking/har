@@ -21,26 +21,26 @@ if __name__ == '__main__':
     # preprocess.preprocess()
 
     acc_model_list, loss_model_list = [], []
-    for _ in range(2):
+    for _ in range(1):
         sess = tf.Session()
         model = Model(sess, fp, lp)
         model.train()
 
         acc1, acc2 = model.test()
-        acc_model_list.append(acc1)
-        loss_model_list.append(acc2)
-
-        os.system('rm save/accuracy/*')
-        os.system('rm save/loss/*')
-
-        time.sleep(1)
-        ops.reset_default_graph()
-        sess.close()
-        time.sleep(1)
-
-    analyzed_data = analyzer(acc_model_list)
-    print('accuracy model - min: {},  max: {},  median: {},  average: {}'.format(analyzed_data[0], analyzed_data[1],
-                                                                                 analyzed_data[2], analyzed_data[3]))
-    analyzed_data = analyzer(loss_model_list)
-    print('loss model - min: {},  max: {},  median: {},  average: {}'.format(analyzed_data[0], analyzed_data[1],
-                                                                             analyzed_data[2], analyzed_data[3]))
+    #     acc_model_list.append(acc1)
+    #     loss_model_list.append(acc2)
+    #
+    #     os.system('rm save/accuracy/*')
+    #     os.system('rm save/loss/*')
+    #
+    #     time.sleep(1)
+    #     ops.reset_default_graph()
+    #     sess.close()
+    #     time.sleep(1)
+    #
+    # analyzed_data = analyzer(acc_model_list)
+    # print('accuracy model - min: {},  max: {},  median: {},  average: {}'.format(analyzed_data[0], analyzed_data[1],
+    #                                                                              analyzed_data[2], analyzed_data[3]))
+    # analyzed_data = analyzer(loss_model_list)
+    # print('loss model - min: {},  max: {},  median: {},  average: {}'.format(analyzed_data[0], analyzed_data[1],
+    #                                                                          analyzed_data[2], analyzed_data[3]))

@@ -27,8 +27,6 @@ class Model(object):
         self.optimizer()
         self.get_accuracy()
 
-        tf.set_random_seed(410)
-
     def _init_placeholder(self):
         self.input = tf.placeholder(dtype=tf.float32, shape=[None, 100, 3])
         self.target = tf.placeholder(dtype=tf.int64, shape=[None])
@@ -194,7 +192,8 @@ class Model(object):
                 branch_2_1 = slim.avg_pool2d(branch_2_1, [7, 2], scope='Branch_2_1_avgpool_1')
 
                 x = slim.flatten(tf.concat(values=[branch_2_0, branch_2_1], axis=3))
-                self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
+                self.x = slim.fully_connected(x, 6)
+                # self.x = slim.dropout(slim.fully_connected(x, 6), self.keep_prob)
 
     def optimizer(self):
         self.loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.x, labels=tf.one_hot(self.target, 6)))
@@ -236,7 +235,7 @@ class Model(object):
         train_data = pickle.load(open(os.path.join(self.data_path, 'train_set.pkl'), 'rb'))
         input_data, target_data = zip(*train_data)
         inputs, targets = self.k_fold_validation(input_data, target_data)
-
+        tf.set_random_seed(9410)
         self.session.run(tf.global_variables_initializer())
         for ep in range(1, self.epoch + 1):
             loss_sum = 0.0
@@ -246,24 +245,24 @@ class Model(object):
                 _, loss, _ = self.session.run([self.opt_loss, self.loss, self.x],
                                               feed_dict={self.input: inputs[i],
                                                          self.target: targets[i],
-                                                         self.keep_prob: 0.9})
+                                                         self.keep_prob: 1.0})
                 loss_sum += loss
 
             acc = self.session.run(self.accuracy, feed_dict={self.input: inputs[ep % self.fold_size],
                                                              self.target: targets[ep % self.fold_size],
-                                                             self.keep_prob: 0.9})
+                                                             self.keep_prob: 1.0})
 
             if loss_sum < self.best_loss:
                 self.best_loss = loss_sum
-                print('model save(best loss model : epoch{})'.format(ep))
+                # print('model save(best loss model : epoch{})'.format(ep))
                 saver_loss.save(self.session, os.path.join(self.save_path, 'loss', 'bestLoss'), global_step=ep)
             if acc > self.best_accuracy:
                 self.best_accuracy = acc
-                print('model save(best accuracy model : epoch{})'.format(ep))
+                # print('model save(best accuracy model : epoch{})'.format(ep))
                 saver_acc.save(self.session, os.path.join(self.save_path, 'accuracy', 'bestAccuracy'), global_step=ep)
 
-            if ep % 50 is 0:
-                print('{}epoch average loss:'.format(ep), loss_sum)
-                print('{}epoch validation accuracy:'.format(ep), acc)
+            # if ep % 50 is 0:
+            #     print('{}epoch average loss:'.format(ep), loss_sum)
+            #     print('{}epoch validation accuracy:'.format(ep), acc)
 
         # print(self.best_accuracy, self.best_loss)
